@@ -44,7 +44,7 @@ function query_explorer(explorer_target_api) {
   // Some of these won't work, as a few have ?index=xxxxx applied to the end for correct queries...
   // but we don't worry about that, as we aren't using those api calls.
   if (explorer_target_api === 'getmoneysupply' || explorer_target_api === 'getdistribution' || explorer_target_api === 'getaddress' || explorer_target_api === 'getbalance' || explorer_target_api === 'getlasttxs') {
-    explorer_target_api = 'ext';
+    explorer_api_extension = 'ext';
   }
 
   return get_json('https://explorer.vcash.info/' + explorer_api_extension + '/' + explorer_target_api);
@@ -71,13 +71,14 @@ function main() {
   // Fail if empty string ( <input type="number"> returns an empty string if not a number)
   // Fail if not positive values (to avoid pointless calculations/api calls) | Letting power cost be 0 because sometimes people have free power.
   if (hashrate !== ' ' && power_consumption !== ' ' && power_cost !== ' ' && hashrate > 0 && power_consumption > 0 && power_cost >= 0) {
-    /*
-      Multiply hashrate based on chosen value in dropdown..
-      to get the hashrate as base hashrate, instead of selected hash per second.
-
-      Values from https://en.wikipedia.org/wiki/Template:Bitrates
-    */
     function get_hps_multiplier() {
+      /*
+        Multiply hashrate based on chosen value in dropdown..
+        to get the hashrate as base hashrate, instead of selected hash per second.
+
+        Values from https://en.wikipedia.org/wiki/Template:Bitrates
+      */
+
       // Using func to scope the var, to keep variables to a minimum
       let hash_per_sec = document.getElementById('hash_per_sec').value;
       switch (hash_per_sec) {
@@ -99,6 +100,15 @@ function main() {
     console.log('Using ' + hashrate.toLocaleString() + ' as hashrate in calculations.');
 
     function fill_grid_elements(target_element, value) {
+      /*
+        Id's of various html tags are "X_Y"
+
+        Where X is profit/mined/power
+        and Y is day/week/month/year
+
+        Ex: The id for power cost per month is "power_month"
+      */
+
       let display_value = value;
       document.getElementById(target_element + '_day').innerHTML = display_value.toLocaleString();
       display_value = value * 7;
@@ -116,15 +126,6 @@ function main() {
       Bittrex API: https://bittrex.com/Home/Api
     */
     let xvc_market_summary = query_bittrex('getmarketsummary?market=BTC-XVC');
-
-    /*
-      Id's of various html tags are "X_Y"
-
-      Where X is profit/mined/power
-      and Y is day/week/month/year
-
-      Ex: The id for power cost per month is "power_month"
-    */
 
     // 24h Average of the values between 'High' and 'Low'
     fill_grid_elements('profit', ((xvc_market_summary.High + xvc_market_summary.Low) / 2));
