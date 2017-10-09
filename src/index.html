@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>Vcash Mining Calc</title>
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+</head>
+
+<body onload="fill_network_badges()">
+  <!-- Warning if they don't enable Javascript -->
+  <noscript>
+      <h1 style="font-weight: bold;font-size: 2em; text-align: center;">This page requires Javascript to query price info!</h1>
+  </noscript>
+
+  <!-- Fluid wrapper for everything -->
+  <div class="container-fluid">
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+      <a class="navbar-brand" href="https://vcash.info/">
+          <img src="https://vcash.info/images/icon.png" width="30" height="30" class="d-inline-block align-top" alt="Vcash"> mining calculator
+        </a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <!-- Get difficulty, only display for PoW since it's a mining calc https://explorer.vcash.info/api/getdifficulty -->
+            <a class="nav-link" href="https://explorer.vcash.info/info"><span class="badge badge-light">PoW difficulty: <span id="pow_difficulty">?</span></span></a>
+          </li>
+          <li class="nav-item">
+            <!-- Display total network hashrate (in MH/s) -->
+            <a class="nav-link" href="https://explorer.vcash.info/info"><span class="badge badge-light">Total hashrate: <span id="network_hashrate">?</span> MH/s</span></a>
+          </li>
+          <li class="nav-item">
+            <!-- Display current block count https://explorer.vcash.info/api/getblockcount -->
+            <a class="nav-link" href="https://explorer.vcash.info/info"><span class="badge badge-light">Block count: <span id="block_count">?</span></span></a>
+          </li>
+        </ul>
+      </div>
+      <!-- End of navbar -->
+    </nav>
+
+    <!-- Main grid to flow cards below instead of crushing them -->
+    <div class="row no-gutters">
+      <div class="col-lg-6">
+
+        <!-- Main card group -->
+        <div class="card-group">
+
+          <!-- First card for entering hashrates -->
+          <div class="card bg-light mb-0">
+            <!-- Start of form for hashrates -->
+            <form>
+              <!-- Start of segmented card list -->
+              <ul class="list-group list-group-flush">
+                <li class="list-group-item">
+                  <label for="hashrate">Hashrate</label>
+                  <div class="input-group input-group-lg">
+                    <input class="form-control" type="number" name="hashrate" id="hashrate" placeholder="Enter hashrate" aria-label="Number input with dropdown" required>
+
+                    <select class="" name="hashes_per_sec" id="hash_per_sec" aria-label="Dropdown for hashes per second" required>
+                      <!-- https://en.wikipedia.org/wiki/Template:Bitrates -->
+                      <optgroup label="Hashes per sec.">
+                        <option value="h">H/s</option>
+                        <option value="kh">KH/s</option>
+                        <option value="mh" selected>MH/s</option>
+                        <option value="gh">GH/s</option>
+                        <option value="th">TH/s</option>
+                      </optgroup>
+
+                  </select>
+                  </div>
+                </li>
+                <li class="list-group-item">
+                  <label for="hashrate">Power consumption <small>in watts</small></label>
+                  <div class="input-group input-group-lg">
+                    <input class="form-control" type="number" value="100" name="power_consumption" id="power_consumption" placeholder="Enter watts" aria-label="Number input with dropdown" required>
+                  </div>
+                </li>
+                <li class="list-group-item">
+                  <label for="cost">Cost per kWh <small>in USD</small></label>
+                  <div class="input-group input-group-lg">
+                    <span class="input-group-addon">$</span>
+                    <input class="form-control" type="number" value="0.10" name="power_cost" id="power_cost" placeholder="Enter cost" aria-label="Number input with dropdown" required>
+                  </div>
+                </li>
+                <li class="list-group-item">
+                  <button class="btn btn-dark btn-lg btn-block" type="button" name="submit" onclick="main()">Calculate</button>
+                </li>
+              </ul>
+            </form>
+            <!-- End of first card (where hashes/etc are entered) -->
+          </div>
+          <!-- End of main card-group -->
+        </div>
+        <!-- End of first col -->
+      </div>
+
+      <div class="col-lg-6">
+
+        <!-- Second card for displaying price info -->
+        <div class="card bg-light mb-0">
+          <!-- Nested cards to make a grid of cards -->
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <div class="card-group">
+                <div class="card bg-light mb-0">
+                  <div class="card-header">
+                    <!-- Empty with br for alignment -->
+                    <br>
+                  </div>
+                  <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                      <span class="badge badge-dark">Profit</span>
+                    </li>
+                    <li class="list-group-item">
+                      <span class="badge badge-dark">Avg. mined</span>
+                    </li>
+                    <li class="list-group-item">
+                      <span class="badge badge-dark">Power cost</span>
+                    </li>
+                  </ul>
+                </div>
+                <div class="card bg-light mb-0">
+                  <div class="card-header">
+                    Day
+                  </div>
+                  <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                      <div>
+                        $<span id="profit_day">0</span>
+                      </div>
+                    </li>
+                    <li class="list-group-item">
+                      <div id="mined_day">
+                        0
+                      </div>
+                    </li>
+                    <li class="list-group-item">
+                      <div>
+                        $<span id="power_day">0</span>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+                <div class="card bg-light mb-0">
+                  <div class="card-header">
+                    Week
+                  </div>
+                  <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                      <div>
+                        $<span id="profit_week">0</span>
+                      </div>
+                    </li>
+                    <li class="list-group-item">
+                      <div id="mined_week">
+                        0
+                      </div>
+                    </li>
+                    <li class="list-group-item">
+                      <div>
+                        $<span id="power_week">0</span>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+                <div class="card bg-light mb-0">
+                  <div class="card-header">
+                    Month
+                  </div>
+                  <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                      <div>
+                        $<span id="profit_month">0</span>
+                      </div>
+                    </li>
+                    <li class="list-group-item">
+                      <div id="mined_month">
+                        0
+                      </div>
+                    </li>
+                    <li class="list-group-item">
+                      <div>
+                        $<span id="power_month">0</span>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+                <div class="card bg-light mb-0">
+                  <div class="card-header">
+                    Year
+                  </div>
+                  <ul class="list-group list-group-flush">
+                    <li class="list-group-item">
+                      <div>
+                        $<span id="profit_year">0</span>
+                      </div>
+                    </li>
+                    <li class="list-group-item">
+                      <div id="mined_year">
+                        0
+                      </div>
+                    </li>
+                    <li class="list-group-item">
+                      <div>
+                        $<span id="power_year">0</span>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </li>
+          </ul>
+
+          <div class="card-footer">
+            <small class="text-muted">Last updated <a id="card_footer_lastupdate">?</a> ago</small>
+            <small class="text-muted float-right">
+                Using <a href="https://bittrex.com/Market/Index?MarketName=BTC-XVC">Bittrex</a> for price info
+            </small>
+          </div>
+          <!-- End of second card (for displaying prices) -->
+        </div>
+        <!-- End of second col -->
+      </div>
+      <!-- End of row -->
+    </div>
+
+    <footer>
+      <small class="text-muted">Donate - XVC: VnTgoWXVM5XVnNT12xZ7ctjpNZ8HWTNiWq | BTC: 1HpD3xTxLrY5ewojYwPNksCWcqFHWYT1fm.</small>
+    </footer>
+    <!-- End of main container-fluid wrapper -->
+  </div>
+
+  <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+  <!-- Our JS for making API calls, filling elements, etc. -->
+  <script src="main.js" charset="utf-8"></script>
+</body>
+
+</html>
