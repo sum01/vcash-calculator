@@ -77,17 +77,12 @@ function format_commas(x) {
 
 // Run from body onload(), then on a timer every 100 seconds
 function fill_network_badges() {
-  query('explorer', 'getdifficulty').then(function(response) {
-    document.getElementById('pow_difficulty').innerHTML = format_commas(Math.round(response));
-  });
-
-  query('explorer', 'getblockcount').then(function(response) {
-    document.getElementById('block_count').innerHTML = format_commas(response);
-  });
-
-  query('explorer', 'getnetworkhashps').then(function(response) {
+  // Using promise.all allows for loading all at the same time, as to appear less laggy
+  Promise.all([query('explorer', 'getdifficulty'), query('explorer', 'getblockcount'), query('explorer', 'getnetworkhashps')]).then(values => {
+    document.getElementById('pow_difficulty').innerHTML = format_commas(Math.round(values[0]));
+    document.getElementById('block_count').innerHTML = format_commas(values[1]);
     // 1000000 is for hash to Mhash, as getnetworkhashps returns in h/s
-    document.getElementById('network_hashrate').innerHTML = format_commas(Math.round(response / 1000000));
+    document.getElementById('network_hashrate').innerHTML = format_commas(Math.round(values[2] / 1000000));
   });
 }
 
@@ -155,44 +150,230 @@ function main() {
       document.getElementById(target_element + '_year').innerHTML = format_commas(display_value.toFixed(precision));
     }
 
+    // Credit to @whphhg as this is just a slightly edited version of his Node.js code
     function get_pow_reward(block) {
-      // Credit to @whphhg from https://github.com/openvcash/vcash-electron/blob/master/src/utilities/blockRewards.js#L18-L59
-      let subsidy = 0;
+      function total_reward() {
+        let subsidy = 0;
 
-      if (block >= 136400 && block <= 136400 + 1000) {
-        subsidy = 1;
-      } else {
-        subsidy = 128 * 1000000;
-
-        if (block < 325000) {
-          for (let i = 50000; i <= block; i += 50000) {
-            subsidy -= subsidy / 6;
-          }
-        } else if (block < 385000) {
-          for (let i = 10000; i <= block; i += 10000) {
-            subsidy -= subsidy / 28;
-            subsidy = Math.ceil(subsidy);
-            subsidy -= subsidy / 28 * 4 / 28;
-            subsidy = Math.ceil(subsidy);
-          }
+        if (block >= 136400 && block <= 136400 + 1000) {
+          subsidy = 1;
         } else {
-          for (let i = 7000; i <= block; i += 7000) {
-            subsidy -= subsidy / 28;
-            subsidy = Math.ceil(subsidy);
-            subsidy -= subsidy / 28 * 4 / 28;
-            subsidy = Math.ceil(subsidy);
+          subsidy = 128 * 1000000;
+
+          if (block < 325000) {
+            for (let i = 50000; i <= block; i += 50000) {
+              subsidy -= subsidy / 6;
+            }
+          } else if (block < 385000) {
+            for (let i = 10000; i <= block; i += 10000) {
+              subsidy -= subsidy / 28;
+              subsidy = Math.ceil(subsidy);
+              subsidy -= subsidy / 28 * 4 / 28;
+              subsidy = Math.ceil(subsidy);
+            }
+          } else {
+            for (let i = 7000; i <= block; i += 7000) {
+              subsidy -= subsidy / 28;
+              subsidy = Math.ceil(subsidy);
+              subsidy -= subsidy / 28 * 4 / 28;
+              subsidy = Math.ceil(subsidy);
+            }
+          }
+
+          if (subsidy / 1000000 < 1) {
+            subsidy = 1;
+            subsidy *= 1000000;
           }
         }
 
-        if (subsidy / 1000000 < 1) {
-          subsidy = 1;
-          subsidy *= 1000000;
+        subsidy /= 1000000;
+        console.log('[debug] Using total PoW+PoS reward = ' + subsidy);
+        return subsidy;
+      }
+
+      function incentive_percent() {
+        const percents = [{
+            block: 210000,
+            percent: 1
+          },
+          {
+            block: 220000,
+            percent: 2
+          },
+          {
+            block: 220222,
+            percent: 3
+          },
+          {
+            block: 220888,
+            percent: 4
+          },
+          {
+            block: 221998,
+            percent: 5
+          },
+          {
+            block: 223552,
+            percent: 6
+          },
+          {
+            block: 225550,
+            percent: 7
+          },
+          {
+            block: 227992,
+            percent: 8
+          },
+          {
+            block: 230878,
+            percent: 9
+          },
+          {
+            block: 234208,
+            percent: 10
+          },
+          {
+            block: 237982,
+            percent: 11
+          },
+          {
+            block: 242200,
+            percent: 12
+          },
+          {
+            block: 246862,
+            percent: 13
+          },
+          {
+            block: 251968,
+            percent: 14
+          },
+          {
+            block: 257518,
+            percent: 15
+          },
+          {
+            block: 263512,
+            percent: 16
+          },
+          {
+            block: 269950,
+            percent: 17
+          },
+          {
+            block: 276832,
+            percent: 18
+          },
+          {
+            block: 284158,
+            percent: 19
+          },
+          {
+            block: 291928,
+            percent: 20
+          },
+          {
+            block: 300142,
+            percent: 21
+          },
+          {
+            block: 308800,
+            percent: 22
+          },
+          {
+            block: 317902,
+            percent: 23
+          },
+          {
+            block: 327448,
+            percent: 24
+          },
+          {
+            block: 337438,
+            percent: 25
+          },
+          {
+            block: 347872,
+            percent: 26
+          },
+          {
+            block: 358750,
+            percent: 27
+          },
+          {
+            block: 370072,
+            percent: 28
+          },
+          {
+            block: 381838,
+            percent: 29
+          },
+          {
+            block: 394048,
+            percent: 30
+          },
+          {
+            block: 406702,
+            percent: 31
+          },
+          {
+            block: 419800,
+            percent: 32
+          },
+          {
+            block: 433342,
+            percent: 33
+          },
+          {
+            block: 447328,
+            percent: 34
+          },
+          {
+            block: 461758,
+            percent: 35
+          },
+          {
+            block: 476632,
+            percent: 36
+          },
+          {
+            block: 491950,
+            percent: 37
+          },
+          {
+            block: 507712,
+            percent: 38
+          },
+          {
+            block: 523918,
+            percent: 39
+          },
+          {
+            block: 540568,
+            percent: 40
+          }
+        ];
+
+        const percents_len = percents.length - 1;
+
+        if (block >= percents[percents_len].block) {
+          console.log('[debug] Using incentive percent = ' + percents[percents_len].percent);
+          return percents[percents_len].percent;
+        } else {
+          for (let i in percents) {
+            if (block < percents[i].block) {
+              console.log('[debug] Using incentive percent = ' + (percents[i].percent - 1));
+              return percents[i].percent - 1;
+            }
+          }
         }
       }
 
-      subsidy /= 1000000;
-      console.log('[debug] Using ' + subsidy + ' as current PoW reward.');
-      return subsidy;
+      let reward_total = total_reward();
+      let incentive_reward = (reward_total / 100) * incentive_percent();
+      // Returns the PoW-only reward
+      console.log('[debug] Using PoW reward = ' + (reward_total - incentive_reward));
+      return reward_total - incentive_reward;
     }
 
     // Chain promises together because some of the math depends on eachother
