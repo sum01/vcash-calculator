@@ -1,7 +1,8 @@
 # Contributing
-## Info
-Javascript ES6 is used (aka `let` and `const` are valid).  
-This uses Bootstrap v4, which is currently in beta. When release, it should be updated and checked for breakage.  
+## General
+[snake_case](https://en.wikipedia.org/wiki/Snake_case) variable/function naming is used.  
+Javascript ES6 is used (so `let` and `const` are valid).  
+This uses Bootstrap v4, which is currently in beta. When it's released, it should be updated and checked for breakage.  
 All API calls are made from the browser via the `main.js` file. The [cors-anywhere proxy](https://github.com/Rob--W/cors-anywhere) makes this possible.
 
 ## Beautifier & Spacing
