@@ -6,16 +6,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-  <title>Vcash Mining Calc</title>
-
+  <title>Vcash Mining Calculator</title>
+  <link rel="shortcut icon" href="vcash_logo.ico">
   <!-- Bootstrap CSS -->
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+  <!-- Tiny bit of custom CSS -->
+  <link rel="stylesheet" href="main.css">
 </head>
 
 <body onload="fill_network_badges()">
   <!-- Warning if they don't enable Javascript -->
   <noscript>
-      <h1 style="font-weight: bold;font-size: 2em; text-align: center;">This page requires Javascript to query price info!</h1>
+      <h1 class="noscript_h1">This page requires Javascript to query price info!</h1>
   </noscript>
 
   <!-- Fluid wrapper for everything -->
@@ -32,16 +34,16 @@
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav">
           <li class="nav-item">
-            <!-- Get difficulty, only display for PoW since it's a mining calc https://explorer.vcash.info/api/getdifficulty -->
-            <a class="nav-link" href="https://explorer.vcash.info/info"><span class="badge badge-light">PoW difficulty: <span id="pow_difficulty">?</span></span></a>
-          </li>
-          <li class="nav-item">
             <!-- Display total network hashrate (in MH/s) -->
             <a class="nav-link" href="https://explorer.vcash.info/info"><span class="badge badge-light">Total hashrate: <span id="network_hashrate">?</span> MH/s</span></a>
           </li>
           <li class="nav-item">
             <!-- Display current block count https://explorer.vcash.info/api/getblockcount -->
             <a class="nav-link" href="https://explorer.vcash.info/info"><span class="badge badge-light">Block count: <span id="block_count">?</span></span></a>
+          </li>
+          <li class="nav-item">
+            <!-- Get difficulty, only display for PoW since it's a mining calc https://explorer.vcash.info/api/getdifficulty -->
+            <a class="nav-link" href="https://explorer.vcash.info/info"><span class="badge badge-light">PoW difficulty: <span id="pow_difficulty">?</span></span></a>
           </li>
         </ul>
       </div>
@@ -50,7 +52,7 @@
 
     <!-- Main grid to flow cards below instead of crushing them -->
     <div class="row no-gutters">
-      <div class="col-lg-6">
+      <div class="col-sm-12">
 
         <!-- Main card group -->
         <div class="card-group">
@@ -71,8 +73,8 @@
                       <optgroup label="Hashes per sec.">
                         <option value="h">H/s</option>
                         <option value="kh">KH/s</option>
-                        <option value="mh" selected>MH/s</option>
-                        <option value="gh">GH/s</option>
+                        <option value="mh">MH/s</option>
+                        <option value="gh" selected>GH/s</option>
                         <option value="th">TH/s</option>
                       </optgroup>
 
@@ -104,125 +106,81 @@
         <!-- End of first col -->
       </div>
 
-      <div class="col-lg-6">
+      <div class="col-sm-12">
 
         <!-- Second card for displaying price info -->
         <div class="card bg-light mb-0">
-          <!-- Nested cards to make a grid of cards -->
-          <ul class="list-group list-group-flush">
-            <li class="list-group-item">
-              <div class="card-group">
-                <div class="card bg-light mb-0">
-                  <div class="card-header">
-                    <!-- Empty with br for alignment -->
-                    <br>
-                  </div>
-                  <ul class="list-group list-group-flush">
-                    <li class="list-group-item">
-                      <span class="badge badge-dark">Profit</span>
-                    </li>
-                    <li class="list-group-item">
-                      <span class="badge badge-dark">Avg. mined</span>
-                    </li>
-                    <li class="list-group-item">
-                      <span class="badge badge-dark">Power cost</span>
-                    </li>
-                  </ul>
-                </div>
-                <div class="card bg-light mb-0">
-                  <div class="card-header">
-                    Day
-                  </div>
-                  <ul class="list-group list-group-flush">
-                    <li class="list-group-item">
-                      <div>
-                        $<span id="profit_day">0</span>
-                      </div>
-                    </li>
-                    <li class="list-group-item">
-                      <div id="mined_day">
-                        0
-                      </div>
-                    </li>
-                    <li class="list-group-item">
-                      <div>
-                        $<span id="power_day">0</span>
-                      </div>
-                    </li>
-                  </ul>
-                </div>
-                <div class="card bg-light mb-0">
-                  <div class="card-header">
-                    Week
-                  </div>
-                  <ul class="list-group list-group-flush">
-                    <li class="list-group-item">
-                      <div>
-                        $<span id="profit_week">0</span>
-                      </div>
-                    </li>
-                    <li class="list-group-item">
-                      <div id="mined_week">
-                        0
-                      </div>
-                    </li>
-                    <li class="list-group-item">
-                      <div>
-                        $<span id="power_week">0</span>
-                      </div>
-                    </li>
-                  </ul>
-                </div>
-                <div class="card bg-light mb-0">
-                  <div class="card-header">
-                    Month
-                  </div>
-                  <ul class="list-group list-group-flush">
-                    <li class="list-group-item">
-                      <div>
-                        $<span id="profit_month">0</span>
-                      </div>
-                    </li>
-                    <li class="list-group-item">
-                      <div id="mined_month">
-                        0
-                      </div>
-                    </li>
-                    <li class="list-group-item">
-                      <div>
-                        $<span id="power_month">0</span>
-                      </div>
-                    </li>
-                  </ul>
-                </div>
-                <div class="card bg-light mb-0">
-                  <div class="card-header">
-                    Year
-                  </div>
-                  <ul class="list-group list-group-flush">
-                    <li class="list-group-item">
-                      <div>
-                        $<span id="profit_year">0</span>
-                      </div>
-                    </li>
-                    <li class="list-group-item">
-                      <div id="mined_year">
-                        0
-                      </div>
-                    </li>
-                    <li class="list-group-item">
-                      <div>
-                        $<span id="power_year">0</span>
-                      </div>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </li>
-          </ul>
+
+          <table class="table table-bordered table-hover">
+            <thead>
+              <tr>
+                <th>
+                  <!-- Empty for alignment -->
+                </th>
+                <th>Day</th>
+                <th>Week</th>
+                <th>Month</th>
+                <th>Year</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>Profit</th>
+                <td>
+                  $<span id="profit_day"></span>
+                </td>
+                <td>
+                  $<span id="profit_week"></span>
+                </td>
+                <td>
+                  $<span id="profit_month"></span>
+                </td>
+                <td>
+                  $<span id="profit_year"></span>
+                </td>
+              </tr>
+              <tr>
+                <th>Mined</th>
+                <td id="mined_day">
+                  -
+                </td>
+                <td id="mined_week">
+                  -
+                </td>
+                <td id="mined_month">
+                  -
+                </td>
+                <td id="mined_year">
+                  -
+                </td>
+              </tr>
+              <tr id="power_cost_row">
+                <th>Power cost</th>
+                <td>
+                  $<span id="power_day"></span>
+                </td>
+                <td>
+                  $<span id="power_week"></span>
+                </td>
+                <td>
+                  $<span id="power_month"></span>
+                </td>
+                <td>
+                  $<span id="power_year"></span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
 
           <div class="card-footer">
-            <small class="text-muted">Using <a href="https://bittrex.com/Market/Index?MarketName=BTC-XVC">Bittrex</a> for price info</small>
+            <div class="row">
+              <div class="col cardfooter_info">
+                <small class="text-muted">Using <a href="https://bittrex.com/Market/Index?MarketName=BTC-XVC">Bittrex</a> for price info</small>
+              </div>
+              <div class="col cardfooter_tip">
+                <small class="text-muted">Tips appreciated 😊 XVC: VnTgoWXVM5XVnNT12xZ7ctjpNZ8HWTNiWq & BTC: 1HpD3xTxLrY5ewojYwPNksCWcqFHWYT1fm</small>
+              </div>
+            </div>
           </div>
           <!-- End of second card (for displaying prices) -->
         </div>
@@ -230,12 +188,6 @@
       </div>
       <!-- End of row -->
     </div>
-
-    <footer class="align-bottom" style="bottom: 0; width: 100%; height: 2%; background-color: #f5f5f5;">
-      <div class="container" style="text-align: center;">
-        <small class="text-muted">Tip me 😊 XVC: VnTgoWXVM5XVnNT12xZ7ctjpNZ8HWTNiWq | BTC: 1HpD3xTxLrY5ewojYwPNksCWcqFHWYT1fm</small>
-      </div>
-    </footer>
     <!-- End of main container-fluid wrapper -->
   </div>
 

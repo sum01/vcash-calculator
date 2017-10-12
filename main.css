@@ -1,0 +1,17 @@
+@charset "UTF-8";
+
+/* Custom styles */
+
+.noscript_h1 {
+  font-weight: bold;
+  font-size: 2em;
+  text-align: center;
+}
+
+.cardfooter_info {
+  text-align: left;
+}
+
+.cardfooter_tip {
+  text-align: right;
+}
