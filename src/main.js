@@ -1,59 +1,94 @@
 // main.js performs the API calls & fills the boxes for displaying network/money info about Vcash.
 // The goal of this is to make all API calls originate from the user, and not require some external server.
 
-function get_json(target_url) {
-  /*
-  let api_request = new Request(target_url, {
-    method: 'get', // 'Get' required for Bittrex
-    mode: 'no-cors', // Cors doesn't seem to be accepted on Bittrex or Vcash Explorer
-    headers: new Headers({
-      'Content-Type': 'application/json' // 'application/json' needed for Bittrex
-    })
+function query(api_name, target_api) {
+  // Promise the data
+  return new Promise(function(resolve, reject) {
+    // JSON.parse() wasn't working, so a number parser is fine for our purposes
+    function parser(data) {
+      let output;
+      // Split by the commas
+      let array = data.split(',');
+
+      if (target_api === 'getmarketsummary?market=BTC-XVC') {
+        // High is on 4, Low is on 5, I think...
+        // FIXME
+      } else if (target_api === 'getmarketsummary?market=USDT-BTC') {
+        // FIXME
+      } else {
+        // Regex to match either a full number, or a number with a decimal
+        // All explorer calls are on index 0
+        output = array[0].match(/([0-9]+[\.]*[0-9]*)\1?/g);
+      }
+
+      console.log('[debug] Parser out for ' + target_url + ' is: ' + output);
+      // Parsed output
+      return output;
+    }
+
+    let target_url;
+
+    // Set URL for Bittrex https://www.bittrex.com/Home/Api
+    if (api_name === 'bittrex') {
+      // Using Bittrex API v1.1 (v1.0 is depreciated), and only making public calls.
+      target_url = 'https://bittrex.com/api/v1.1/public/' + target_api;
+
+      // Set URL for explorer https://explorer.vcash.info/info
+    } else if (api_name === 'explorer') {
+      // The explorer uses different strings in the url for different calls
+      // Only checking for calls that don't require an '?index=XXXX'
+      if (target_api === 'getmoneysupply' || target_api === 'getdistribution') {
+        target_url = 'https://explorer.vcash.info/' + 'ext/' + target_api;
+      } else {
+        target_url = 'https://explorer.vcash.info/' + 'api/' + target_api;
+      }
+    } else {
+      reject(Error('Incorrect api name, canceling calulation.'));
+    }
+
+    // Only way to pull from API's seems to be with a cors proxy https://github.com/Rob--W/cors-anywhere
+    fetch('https://cors-anywhere.herokuapp.com/' + target_url, {
+      method: 'get',
+      mode: 'cors'
+    }).then(function(response) {
+      // Only start doing things if the response was good
+      if (response.ok) {
+        // Parses to json into 'data' | Trying to use 'return response.json();' returns undefined.
+        response.json().then(function(data) {
+          // Sends the data as string to the parser, which is the eventual output
+          resolve(parser(JSON.stringify(data)));
+        });
+      } else {
+        console.log('Fetch failed with status code ' + response.status + '. ' + response.statusText);
+        reject(Error('on query'));
+      }
+    }).catch(function(error) {
+      reject(Error('Fetch error: ' + error));
+    });
   });
-  */
-
-  fetch(target_url, {
-    method: 'get', // 'Get' required for Bittrex
-    mode: 'no-cors', // Cors doesn't seem to be accepted on Bittrex or Vcash Explorer
-    headers: new Headers({
-      'Content-Type': 'application/json' // 'application/json' needed for Bittrex
-    })
-  }).then(function(response) {
-    console.log(response);
-    return response.json(); // .json() is a shortcut to return parsed JSON
-  });
 }
 
-function query_bittrex(bittrex_target_api) {
-  /*
-    Using Bittrex API v1.1 (v1.0 is being depreciated)
-    We don't need to make any non-public calls.
-
-    Example call: https://bittrex.com/api/v1.1/public/getmarketsummary?market=BTC-XVC
-  */
-  return get_json('https://bittrex.com/api/v1.1/public/' + bittrex_target_api);
+// Credit https://stackoverflow.com/a/2901298
+function format_commas(x) {
+  let parts = x.toString().split(".");
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return parts.join(".");
 }
 
-function query_explorer(explorer_target_api) {
-  // Docs: https://explorer.vcash.info/info
-
-  // The explorer uses different strings for different calls
-  // Example: getdifficulty uses /api/ while getmoneysupply uses /ext/
-  let explorer_api_extension = 'api';
-
-  // Some of these won't work, as a few have ?index=xxxxx applied to the end for correct queries...
-  // but we don't worry about that, as we aren't using those api calls.
-  if (explorer_target_api === 'getmoneysupply' || explorer_target_api === 'getdistribution' || explorer_target_api === 'getaddress' || explorer_target_api === 'getbalance' || explorer_target_api === 'getlasttxs') {
-    explorer_api_extension = 'ext';
-  }
-
-  return get_json('https://explorer.vcash.info/' + explorer_api_extension + '/' + explorer_target_api);
-}
-
+// Run on body load, then every 30 seconds
 function fill_network_badges() {
-  document.getElementById('pow_difficulty').innerHTML = query_explorer('getdifficulty');
-  document.getElementById('block_count').innerHTML = query_explorer('getblockcount');
-  document.getElementById('network_hashrate').innerHTML = query_explorer('getnetworkhashps');
+  query('explorer', 'getdifficulty').then(function(response) {
+    document.getElementById('pow_difficulty').innerHTML = format_commas(Math.round(response));
+  });
+
+  query('explorer', 'getblockcount').then(function(response) {
+    document.getElementById('block_count').innerHTML = format_commas(response);
+  });
+
+  query('explorer', 'getnetworkhashps').then(function(response) {
+    // 1000000 is for hash to Mhash, as getnetworkhashps returns in h/s
+    document.getElementById('network_hashrate').innerHTML = format_commas(Math.round(response / 1000000));
+  });
 }
 
 // Triggered by onclick() from calculate button
@@ -125,7 +160,7 @@ function main() {
 
       Bittrex API: https://bittrex.com/Home/Api
     */
-    let xvc_market_summary = query_bittrex('getmarketsummary?market=BTC-XVC');
+    let xvc_market_summary = query('bittrex', 'getmarketsummary?market=BTC-XVC');
 
     // 24h Average of the values between 'High' and 'Low'
     fill_grid_elements('profit', ((xvc_market_summary.High + xvc_market_summary.Low) / 2));
@@ -136,7 +171,7 @@ function main() {
     }
 
     // HashRate/24h_Average_Net_HashRate*PoW_Reward*18*24  = XVC/DAY
-    fill_grid_elements('mined', ((((hashrate / query_explorer('getnetworkhashps')) * get_pow_reward()) * 18) * 24));
+    fill_grid_elements('mined', ((((hashrate / query('explorer', 'getnetworkhashps')) * get_pow_reward()) * 18) * 24));
 
     // power_consumption / 1000 is to convert watts to kilowatts
     // power_cost is in kWh
