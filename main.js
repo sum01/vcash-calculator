@@ -155,26 +155,55 @@ function main() {
       document.getElementById(target_element + '_year').innerHTML = format_commas(display_value.toFixed(precision));
     }
 
-    function get_pow_reward() {
-      // NOTE: This should probably be calculated somehow...
-      return 1;
+    function get_pow_reward(block) {
+      // Credit to @whphhg from https://github.com/openvcash/vcash-electron/blob/master/src/utilities/blockRewards.js#L18-L59
+      let subsidy = 0;
+
+      if (block >= 136400 && block <= 136400 + 1000) {
+        subsidy = 1;
+      } else {
+        subsidy = 128 * 1000000;
+
+        if (block < 325000) {
+          for (let i = 50000; i <= block; i += 50000) {
+            subsidy -= subsidy / 6;
+          }
+        } else if (block < 385000) {
+          for (let i = 10000; i <= block; i += 10000) {
+            subsidy -= subsidy / 28;
+            subsidy = Math.ceil(subsidy);
+            subsidy -= subsidy / 28 * 4 / 28;
+            subsidy = Math.ceil(subsidy);
+          }
+        } else {
+          for (let i = 7000; i <= block; i += 7000) {
+            subsidy -= subsidy / 28;
+            subsidy = Math.ceil(subsidy);
+            subsidy -= subsidy / 28 * 4 / 28;
+            subsidy = Math.ceil(subsidy);
+          }
+        }
+
+        if (subsidy / 1000000 < 1) {
+          subsidy = 1;
+          subsidy *= 1000000;
+        }
+      }
+
+      subsidy /= 1000000;
+      console.log('[debug] Using ' + subsidy + ' as current PoW reward.');
+      return subsidy;
     }
 
-    // Average mined over 24 hours
-    let avg_mined;
-    // Average of the values between 'High' and 'Low'
-    let xvc_to_btc_conversion;
-    // Value of conversion to USD
-    let btc_to_usd_price;
     // Chain promises together because some of the math depends on eachother
-    Promise.all([query('explorer', 'getnetworkhashps'), query('bittrex', 'getmarketsummary?market=BTC-XVC'), query('bittrex', 'getmarketsummary?market=USDT-BTC')]).then(values => {
+    Promise.all([query('explorer', 'getnetworkhashps'), query('bittrex', 'getmarketsummary?market=BTC-XVC'), query('bittrex', 'getmarketsummary?market=USDT-BTC'), query('explorer', 'getblockcount')]).then(values => {
       // Values is an array with the results of each promise
 
       // HashRate/24h_Average_Net_HashRate*PoW_Reward*18*24  = XVC/DAY
       // 8 decimal places for Vcash
-      avg_mined = parseFloat((((hashrate / values[0]) * get_pow_reward()) * 18) * 24);
-      xvc_to_btc_conversion = parseFloat(values[1]);
-      btc_to_usd_price = parseFloat(values[2]);
+      let avg_mined = parseFloat((((hashrate / values[0]) * get_pow_reward(parseInt(values[3]))) * 18) * 24);
+      let xvc_to_btc_conversion = parseFloat(values[1]);
+      let btc_to_usd_price = parseFloat(values[2]);
 
       // Fill all at once to appear less laggy
       fill_grid_elements('mined', avg_mined, 8);
