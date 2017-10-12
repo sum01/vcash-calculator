@@ -10,18 +10,19 @@ function query(api_name, target_api) {
       // Split by the commas
       let array = data.split(',');
 
-      if (target_api === 'getmarketsummary?market=BTC-XVC') {
-        // High is on 4, Low is on 5, I think...
-        // FIXME
-      } else if (target_api === 'getmarketsummary?market=USDT-BTC') {
-        // FIXME
+      // Regex to match either a full number, or a number with a decimal
+      if (target_api === 'getmarketsummary?market=BTC-XVC' || target_api === 'getmarketsummary?market=USDT-BTC') {
+        // High is on 3, Low is on 4
+        let high = parseFloat(array[3].match(/([0-9]+([\.]?[0-9]+)?)\1?/g));
+        let low = parseFloat(array[4].match(/([0-9]+([\.]?[0-9]+)?)\1?/g));
+        // Returns the average of the two
+        output = (high + low) / 2;
       } else {
-        // Regex to match either a full number, or a number with a decimal
         // All explorer calls are on index 0
-        output = array[0].match(/([0-9]+[\.]*[0-9]*)\1?/g);
+        output = array[0].match(/([0-9]+([\.]?[0-9]+)?)\1?/g);
       }
 
-      console.log('[debug] Parser out for ' + target_url + ' is: ' + output);
+      console.log('[debug] Parser output for ' + target_url + ' = ' + output);
       // Parsed output
       return output;
     }
@@ -43,7 +44,7 @@ function query(api_name, target_api) {
         target_url = 'https://explorer.vcash.info/' + 'api/' + target_api;
       }
     } else {
-      reject(Error('Incorrect api name, canceling calulation.'));
+      reject(Error('Incorrect api name.'));
     }
 
     // Only way to pull from API's seems to be with a cors proxy https://github.com/Rob--W/cors-anywhere
@@ -59,8 +60,7 @@ function query(api_name, target_api) {
           resolve(parser(JSON.stringify(data)));
         });
       } else {
-        console.log('Fetch failed with status code ' + response.status + '. ' + response.statusText);
-        reject(Error('on query'));
+        reject(Error('Fetch failed with status code ' + response.status + '. ' + response.statusText));
       }
     }).catch(function(error) {
       reject(Error('Fetch error: ' + error));
@@ -75,7 +75,7 @@ function format_commas(x) {
   return parts.join(".");
 }
 
-// Run on body load, then every 30 seconds
+// Run from body onload(), then on a timer every 100 seconds
 function fill_network_badges() {
   query('explorer', 'getdifficulty').then(function(response) {
     document.getElementById('pow_difficulty').innerHTML = format_commas(Math.round(response));
@@ -132,9 +132,10 @@ function main() {
       }
     }
     hashrate *= get_hps_multiplier();
-    console.log('Using ' + hashrate.toLocaleString() + ' as hashrate in calculations.');
 
-    function fill_grid_elements(target_element, value) {
+    // NOTE: Must be passed a numeric type or it will break!
+    // Always pass parseFloat() so toFixed doesn't break, even if 0 precision.
+    function fill_grid_elements(target_element, value, precision) {
       /*
         Id's of various html tags are "X_Y"
 
@@ -145,57 +146,51 @@ function main() {
       */
 
       let display_value = value;
-      document.getElementById(target_element + '_day').innerHTML = display_value.toLocaleString();
+      document.getElementById(target_element + '_day').innerHTML = format_commas(display_value.toFixed(precision));
       display_value = value * 7;
-      document.getElementById(target_element + '_week').innerHTML = display_value.toLocaleString();
+      document.getElementById(target_element + '_week').innerHTML = format_commas(display_value.toFixed(precision));
       display_value = (value * 7) * 3;
-      document.getElementById(target_element + '_month').innerHTML = display_value.toLocaleString();
+      document.getElementById(target_element + '_month').innerHTML = format_commas(display_value.toFixed(precision));
       display_value = ((value * 7) * 3) * 12;
-      document.getElementById(target_element + '_year').innerHTML = display_value.toLocaleString();
+      document.getElementById(target_element + '_year').innerHTML = format_commas(display_value.toFixed(precision));
     }
-
-    /*
-      Queries Bittrex for public (doesn't require api key) data...
-      and fills HTML elements with calculated/queried data.
-
-      Bittrex API: https://bittrex.com/Home/Api
-    */
-    let xvc_market_summary = query('bittrex', 'getmarketsummary?market=BTC-XVC');
-
-    // 24h Average of the values between 'High' and 'Low'
-    fill_grid_elements('profit', ((xvc_market_summary.High + xvc_market_summary.Low) / 2));
 
     function get_pow_reward() {
       // NOTE: This should probably be calculated somehow...
       return 1;
     }
 
-    // HashRate/24h_Average_Net_HashRate*PoW_Reward*18*24  = XVC/DAY
-    fill_grid_elements('mined', ((((hashrate / query('explorer', 'getnetworkhashps')) * get_pow_reward()) * 18) * 24));
+    // Average mined over 24 hours
+    let avg_mined;
+    // Average of the values between 'High' and 'Low'
+    let xvc_to_btc_conversion;
+    // Value of conversion to USD
+    let btc_to_usd_price;
+    // Chain promises together because some of the math depends on eachother
+    Promise.all([query('explorer', 'getnetworkhashps'), query('bittrex', 'getmarketsummary?market=BTC-XVC'), query('bittrex', 'getmarketsummary?market=USDT-BTC')]).then(values => {
+      // Values is an array with the results of each promise
 
-    // power_consumption / 1000 is to convert watts to kilowatts
-    // power_cost is in kWh
-    // * 24 to convert to cost per day
-    fill_grid_elements('power', (((power_consumption / 1000) * power_cost) * 24))
+      // HashRate/24h_Average_Net_HashRate*PoW_Reward*18*24  = XVC/DAY
+      // 8 decimal places for Vcash
+      avg_mined = parseFloat((((hashrate / values[0]) * get_pow_reward()) * 18) * 24);
+      xvc_to_btc_conversion = parseFloat(values[1]);
+      btc_to_usd_price = parseFloat(values[2]);
 
-    /* FIXME needs to parse out the crap & just get the time
-    let timestamp = Date.parse(xvc_market_summary.TimeStamp);
-
-    // Updates the "Last updated ? ago" element to track last time from a Bittrex query
-    setInterval(function() {
-      timestamp += 1;
-      document.getElementById('card_footer_lastupdate').innerHTML = timestamp;
-    }, 1000)
-    */
+      // Fill all at once to appear less laggy
+      fill_grid_elements('mined', avg_mined, 8);
+      fill_grid_elements('profit', (xvc_to_btc_conversion * avg_mined) * btc_to_usd_price, 2);
+      // power_consumption / 1000 is to convert watts to kilowatts
+      // power_cost is in kWh
+      // * 24 to convert to cost per day
+      fill_grid_elements('power', parseFloat(((power_consumption / 1000) * power_cost) * 24), 2);
+    });
   } else {
-    console.log('Incorrect value(s) in input boxes, canceling calculation.');
+    console.log('[Error] Incorrect value(s) in input boxes.');
     return;
   }
 }
 
-/* TEMP disabled till API call is fixed
-// Fills the badges with data retrieved from explorer API every 30 seconds
+// Fills the badges with data retrieved from explorer API every 100 seconds (avg block time)
 setInterval(function() {
   fill_network_badges();
-}, 30000)
-*/
+}, 100000)
