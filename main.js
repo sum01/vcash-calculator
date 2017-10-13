@@ -22,7 +22,7 @@ function query(api_name, target_api) {
         output = array[0].match(/([0-9]+([\.]?[0-9]+)?)\1?/g);
       }
 
-      console.log('[debug] Parser output for ' + target_url + ' = ' + output);
+      console.log('[info] Parser output for ' + target_url + ' = ' + output);
       // Parsed output
       return output;
     }
@@ -83,11 +83,29 @@ function fill_network_badges() {
     document.getElementById('block_count').innerHTML = format_commas(values[1]);
     // 1000000 is for hash to Mhash, as getnetworkhashps returns in h/s
     document.getElementById('network_hashrate').innerHTML = format_commas(Math.round(values[2] / 1000000));
+  }).catch(function(error) {
+    // Throw an alert if query fails
+    console.error(error);
+    alert('API query failed!');
   });
+}
+
+// Prevent clicking button till the query ends.
+function disable_btn(button, disable) {
+  button.disabled = disable;
+  if (disable) {
+    button.innerHTML = 'Loading...';
+  } else {
+    button.innerHTML = 'Calculate';
+  }
 }
 
 // Triggered by onclick() from calculate button
 function main() {
+  // Disable/enable button while running
+  let calculate_button = document.getElementById('calculate_btn');
+  disable_btn(calculate_btn, true);
+
   /*
     Hashrate id="hashrate"
     Hashrate per second id="hash_per_sec"
@@ -187,7 +205,7 @@ function main() {
         }
 
         subsidy /= 1000000;
-        console.log('[debug] Using total PoW+PoS reward = ' + subsidy);
+        console.log('[info] Using total PoW+PoS reward = ' + subsidy);
         return subsidy;
       }
 
@@ -357,12 +375,12 @@ function main() {
         const percents_len = percents.length - 1;
 
         if (block >= percents[percents_len].block) {
-          console.log('[debug] Using incentive percent = ' + percents[percents_len].percent);
+          console.log('[info] Using incentive percent = ' + percents[percents_len].percent);
           return percents[percents_len].percent;
         } else {
           for (let i in percents) {
             if (block < percents[i].block) {
-              console.log('[debug] Using incentive percent = ' + (percents[i].percent - 1));
+              console.log('[info] Using incentive percent = ' + (percents[i].percent - 1));
               return percents[i].percent - 1;
             }
           }
@@ -372,7 +390,7 @@ function main() {
       let reward_total = total_reward();
       let incentive_reward = (reward_total / 100) * incentive_percent();
       // Returns the PoW-only reward
-      console.log('[debug] Using PoW reward = ' + (reward_total - incentive_reward));
+      console.log('[info] Using PoW reward = ' + (reward_total - incentive_reward));
       return reward_total - incentive_reward;
     }
 
@@ -393,10 +411,21 @@ function main() {
       // power_cost is in kWh
       // * 24 to convert to cost per day
       fill_grid_elements('power', parseFloat(((power_consumption / 1000) * power_cost) * 24), 2);
+
+      // Re-enable button
+      disable_btn(calculate_btn, false);
+    }).catch(function(error) {
+      // Throw an alert if query fails
+      console.error(error);
+      alert('API query failed!');
+
+      // Re-enable button
+      disable_btn(calculate_btn, false);
     });
   } else {
     console.log('[Error] Incorrect value(s) in input boxes.');
-    return;
+    // Re-enable button
+    disable_btn(calculate_btn, false);
   }
 }
 
