@@ -6,7 +6,7 @@ function query(api_name, target_api) {
   return new Promise(function(resolve, reject) {
     // JSON.parse() wasn't working, so a number parser is fine for our purposes
     function parser(data) {
-      let output;
+      let output = 0;
       // Split by the commas
       let array = data.split(',');
 
@@ -27,7 +27,7 @@ function query(api_name, target_api) {
       return output;
     }
 
-    let target_url;
+    let target_url = '';
 
     // Set URL for Bittrex https://www.bittrex.com/Home/Api
     if (api_name === 'bittrex') {
@@ -119,6 +119,11 @@ function main() {
   // Fail if empty string ( <input type="number"> returns an empty string if not a number)
   // Fail if not positive values (to avoid pointless calculations/api calls) | Letting power cost be 0 because sometimes people have free power.
   if (hashrate !== ' ' && power_consumption !== ' ' && power_cost !== ' ' && hashrate > 0 && power_consumption > 0 && power_cost >= 0) {
+    // Pre-parse to float to avoid dealing with incorrect num-types
+    hashrate = parseFloat(hashrate);
+    power_consumption = parseFloat(power_consumption);
+    power_cost = parseFloat(power_cost);
+
     function get_hps_multiplier() {
       /*
         Multiply hashrate based on chosen value in dropdown..
@@ -131,17 +136,17 @@ function main() {
       let hash_per_sec = document.getElementById('hash_per_sec').value;
       switch (hash_per_sec) {
         case 'h':
-          return 1;
+          return 1.0;
         case 'kh':
-          return 1000;
+          return 1000.0;
         case 'mh':
-          return 1000000;
+          return 1000000.0;
         case 'gh':
-          return 1000000000;
+          return 1000000000.0;
         case 'th':
-          return 1000000000000;
+          return 1000000000000.0;
         default:
-          return 1;
+          return 1.0;
       }
     }
     hashrate *= get_hps_multiplier();
@@ -160,11 +165,11 @@ function main() {
 
       let display_value = value;
       document.getElementById(target_element + '_day').innerHTML = format_commas(display_value.toFixed(precision));
-      display_value = value * 7;
+      display_value = value * 7.0;
       document.getElementById(target_element + '_week').innerHTML = format_commas(display_value.toFixed(precision));
-      display_value = (value * 7) * 3;
+      display_value = (value * 7.0) * 3.0;
       document.getElementById(target_element + '_month').innerHTML = format_commas(display_value.toFixed(precision));
-      display_value = ((value * 7) * 3) * 12;
+      display_value = ((value * 7.0) * 3.0) * 12.0;
       document.getElementById(target_element + '_year').innerHTML = format_commas(display_value.toFixed(precision));
     }
 
@@ -391,7 +396,7 @@ function main() {
       let incentive_reward = (reward_total / 100) * incentive_percent();
       // Returns the PoW-only reward
       console.log('[info] Using PoW reward = ' + (reward_total - incentive_reward));
-      return reward_total - incentive_reward;
+      return parseFloat(reward_total - incentive_reward);
     }
 
     // Chain promises together because some of the math depends on eachother
@@ -399,18 +404,22 @@ function main() {
       // Values is an array with the results of each promise
 
       // HashRate/24h_Average_Net_HashRate*PoW_Reward*18*24  = XVC/DAY
-      // 8 decimal places for Vcash
-      let avg_mined = parseFloat((((hashrate / values[0]) * get_pow_reward(parseInt(values[3]))) * 18) * 24);
-      let xvc_to_btc_conversion = parseFloat(values[1]);
-      let btc_to_usd_price = parseFloat(values[2]);
+      let avg_mined = (((hashrate / parseFloat(values[0])) * get_pow_reward(parseInt(values[3]))) * 18.0) * 24.0;
 
-      // Fill all at once to appear less laggy
-      fill_grid_elements('mined', avg_mined, 8);
-      fill_grid_elements('profit', (xvc_to_btc_conversion * avg_mined) * btc_to_usd_price, 2);
+      // Calc how many bitcoins you'd make, then multiply it by the conversion to USD
+      // (XVC-to-BTC * mined) * BTC-to-USDT
+      let avg_profit = (parseFloat(values[1]) * avg_mined) * parseFloat(values[2]);
       // power_consumption / 1000 is to convert watts to kilowatts
       // power_cost is in kWh
       // * 24 to convert to cost per day
-      fill_grid_elements('power', parseFloat(((power_consumption / 1000) * power_cost) * 24), 2);
+      let avg_power_cost = ((power_consumption / 1000.0) * power_cost) * 24.0;
+      // Minus power cost from profit to get actual profit
+      avg_profit -= avg_power_cost;
+
+      // Fill all at once to appear less laggy
+      fill_grid_elements('mined', avg_mined, 8);
+      fill_grid_elements('profit', avg_profit, 2);
+      fill_grid_elements('power', avg_power_cost, 2);
 
       // Re-enable button
       disable_btn(calculate_btn, false);
