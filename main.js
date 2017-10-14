@@ -4,51 +4,54 @@
 function query(api_name, target_api) {
   // Promise the data
   return new Promise(function(resolve, reject) {
-    // JSON.parse() wasn't working, so a number parser is fine for our purposes
-    function parser(data) {
-      let output = 0;
-      // Split by the commas
-      let array = data.split(',');
-
-      // Regex to match either a full number, or a number with a decimal
-      if (target_api === 'getmarketsummary?market=BTC-XVC' || target_api === 'getmarketsummary?market=USDT-BTC') {
-        // High is on 3, Low is on 4
-        let high = parseFloat(array[3].match(/([0-9]+([\.]?[0-9]+)?)\1?/g));
-        let low = parseFloat(array[4].match(/([0-9]+([\.]?[0-9]+)?)\1?/g));
-        // Returns the average of the two
-        output = (high + low) / 2;
-      } else {
-        // All explorer calls are on index 0
-        output = array[0].match(/([0-9]+([\.]?[0-9]+)?)\1?/g);
-      }
-
-      console.log('[info] Parser output for ' + target_url + ' = ' + output);
-      // Parsed output
-      return output;
-    }
-
     let target_url = '';
 
     // Set URL for Bittrex https://www.bittrex.com/Home/Api
     if (api_name === 'bittrex') {
       // Using Bittrex API v1.1 (v1.0 is depreciated), and only making public calls.
-      target_url = 'https://bittrex.com/api/v1.1/public/' + target_api;
+      target_url = `https://bittrex.com/api/v1.1/public/${target_api}`;
 
       // Set URL for explorer https://explorer.vcash.info/info
     } else if (api_name === 'explorer') {
+      target_url = 'https://explorer.vcash.info/';
       // The explorer uses different strings in the url for different calls
       // Only checking for calls that don't require an '?index=XXXX'
       if (target_api === 'getmoneysupply' || target_api === 'getdistribution') {
-        target_url = 'https://explorer.vcash.info/' + 'ext/' + target_api;
+        target_url += 'ext/';
       } else {
-        target_url = 'https://explorer.vcash.info/' + 'api/' + target_api;
+        target_url += 'api/';
       }
+      target_url += target_api;
     } else {
       reject(Error('Incorrect api name.'));
     }
 
+    // JSON.parse() wasn't working, so a number parser is fine for our purposes
+    function parser(data) {
+      let output = 0;
+      // Split by the commas
+      let array = data.split(',');
+      let regex = new RegExp('([0-9]+([\.]?[0-9]+)?)\1?', 'g');
+
+      // Regex to match either a full number, or a number with a decimal
+      if (target_api === 'getmarketsummary?market=BTC-XVC' || target_api === 'getmarketsummary?market=USDT-BTC') {
+        // High is on 3, Low is on 4
+        let high = parseFloat(array[3].match(regex));
+        let low = parseFloat(array[4].match(regex));
+        // Returns the average of the two
+        output = (high + low) / 2;
+      } else {
+        // All explorer calls are on index 0
+        output = array[0].match(regex);
+      }
+
+      console.log(`[info] Parser output for ${target_url} = ${output}`);
+      // Parsed output
+      return output;
+    }
+
     // Only way to pull from API's seems to be with a cors proxy https://github.com/Rob--W/cors-anywhere
-    fetch('https://cors-anywhere.herokuapp.com/' + target_url, {
+    fetch(`https://cors-anywhere.herokuapp.com/${target_url}`, {
       method: 'get',
       mode: 'cors'
     }).then(function(response) {
@@ -60,32 +63,32 @@ function query(api_name, target_api) {
           resolve(parser(JSON.stringify(data)));
         });
       } else {
-        reject(Error('Fetch failed with status code ' + response.status + '. ' + response.statusText));
+        reject(Error(`Fetch failed with status code ${response.status}. ${response.statusText}`));
       }
     }).catch(function(error) {
-      reject(Error('Fetch error: ' + error));
+      reject(Error(`Fetch error: ${error}`));
     });
   });
 }
 
 // Credit https://stackoverflow.com/a/2901298
 function format_commas(x) {
-  let parts = x.toString().split(".");
-  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  return parts.join(".");
+  let parts = x.toString().split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return parts.join('.');
 }
 
 // Run from body onload(), then on a timer every 100 seconds
 function fill_network_badges() {
   // Using promise.all allows for loading all at the same time, as to appear less laggy
   Promise.all([query('explorer', 'getdifficulty'), query('explorer', 'getblockcount'), query('explorer', 'getnetworkhashps')]).then(values => {
-    document.getElementById('pow_difficulty').innerHTML = format_commas(Math.round(values[0]));
-    document.getElementById('block_count').innerHTML = format_commas(values[1]);
+    document.getElementById('pow_difficulty').textContent = format_commas(Math.round(values[0]));
+    document.getElementById('block_count').textContent = format_commas(values[1]);
     // 1000000 is for hash to Mhash, as getnetworkhashps returns in h/s
-    document.getElementById('network_hashrate').innerHTML = format_commas(Math.round(values[2] / 1000000));
+    document.getElementById('network_hashrate').textContent = format_commas(Math.round(values[2] / 1000000));
   }).catch(function(error) {
     // Throw an alert if query fails
-    console.error(error);
+    console.log(error);
     alert('API query failed!');
   });
 }
@@ -94,9 +97,9 @@ function fill_network_badges() {
 function disable_btn(button, disable) {
   button.disabled = disable;
   if (disable) {
-    button.innerHTML = 'Loading...';
+    button.textContent = 'Loading...';
   } else {
-    button.innerHTML = 'Calculate';
+    button.textContent = 'Calculate';
   }
 }
 
@@ -164,13 +167,13 @@ function main() {
       */
 
       let display_value = value;
-      document.getElementById(target_element + '_day').innerHTML = format_commas(display_value.toFixed(precision));
+      document.getElementById(target_element + '_day').textContent = format_commas(display_value.toFixed(precision));
       display_value = value * 7.0;
-      document.getElementById(target_element + '_week').innerHTML = format_commas(display_value.toFixed(precision));
+      document.getElementById(target_element + '_week').textContent = format_commas(display_value.toFixed(precision));
       display_value = (value * 7.0) * 3.0;
-      document.getElementById(target_element + '_month').innerHTML = format_commas(display_value.toFixed(precision));
+      document.getElementById(target_element + '_month').textContent = format_commas(display_value.toFixed(precision));
       display_value = ((value * 7.0) * 3.0) * 12.0;
-      document.getElementById(target_element + '_year').innerHTML = format_commas(display_value.toFixed(precision));
+      document.getElementById(target_element + '_year').textContent = format_commas(display_value.toFixed(precision));
     }
 
     // Credit to @whphhg as this is just a slightly edited version of his Node.js code
@@ -210,7 +213,7 @@ function main() {
         }
 
         subsidy /= 1000000;
-        console.log('[info] Using total PoW+PoS reward = ' + subsidy);
+        console.log(`[info] Using total PoW+PoS reward = ${subsidy}`);
         return subsidy;
       }
 
@@ -380,12 +383,12 @@ function main() {
         const percents_len = percents.length - 1;
 
         if (block >= percents[percents_len].block) {
-          console.log('[info] Using incentive percent = ' + percents[percents_len].percent);
+          console.log(`[info] Using incentive percent = ${percents[percents_len].percent}`);
           return percents[percents_len].percent;
         } else {
           for (let i in percents) {
             if (block < percents[i].block) {
-              console.log('[info] Using incentive percent = ' + (percents[i].percent - 1));
+              console.log(`[info] Using incentive percent = ${(percents[i].percent - 1)}`);
               return percents[i].percent - 1;
             }
           }
@@ -395,7 +398,7 @@ function main() {
       let reward_total = total_reward();
       let incentive_reward = (reward_total / 100) * incentive_percent();
       // Returns the PoW-only reward
-      console.log('[info] Using PoW reward = ' + (reward_total - incentive_reward));
+      console.log(`[info] Using PoW reward = ${(reward_total - incentive_reward)}`);
       return parseFloat(reward_total - incentive_reward);
     }
 
@@ -425,7 +428,7 @@ function main() {
       disable_btn(calculate_btn, false);
     }).catch(function(error) {
       // Throw an alert if query fails
-      console.error(error);
+      console.log(error);
       alert('API query failed!');
 
       // Re-enable button
