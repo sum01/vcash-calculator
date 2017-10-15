@@ -1,5 +1,7 @@
-// main.js performs the API calls & fills the boxes for displaying network/money info about Vcash.
-// The goal of this is to make all API calls originate from the user, and not require some external server.
+/*
+  This js performs the API calls & fills the boxes for displaying network/money info about Vcash.
+  The goal of this is to make all API calls originate from the user, and not require some external server.
+*/
 
 function query(api_name, target_api) {
   // Promise the data
@@ -28,21 +30,25 @@ function query(api_name, target_api) {
 
     // JSON.parse() wasn't working, so a number parser is fine for our purposes
     function parser(data) {
-      let output = 0;
+      let output = 0.0;
       // Split by the commas
       let array = data.split(',');
-      let regex = new RegExp('([0-9]+([\.]?[0-9]+)?)\1?', 'g');
-
       // Regex to match either a full number, or a number with a decimal
-      if (target_api === 'getmarketsummary?market=BTC-XVC' || target_api === 'getmarketsummary?market=USDT-BTC') {
+      let api_regex = new RegExp('([0-9]+([\.]?[0-9]+)?)\1?', 'g');
+
+      // Test if the target api matches the bittrex call
+      if (api_name === 'bittrex') {
         // High is on 3, Low is on 4
-        let high = parseFloat(array[3].match(regex));
-        let low = parseFloat(array[4].match(regex));
+        let high = parseFloat(array[3].match(api_regex));
+        let low = parseFloat(array[4].match(api_regex));
         // Returns the average of the two
-        output = (high + low) / 2;
+        output = (high + low) / 2.0;
+      } else if (api_name === 'explorer') {
+        // All used explorer calls are on index 0
+        output = array[0].match(api_regex);
       } else {
-        // All explorer calls are on index 0
-        output = array[0].match(regex);
+        console.log(Error('Parser failure! Incorrect api call.'));
+        return;
       }
 
       console.log(`[info] Parser output for ${target_url} = ${output}`);
@@ -71,25 +77,85 @@ function query(api_name, target_api) {
   });
 }
 
-// Credit https://stackoverflow.com/a/2901298
-function format_commas(x) {
-  let parts = x.toString().split('.');
-  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  return parts.join('.');
+// A one-size-fits-all formatter for any/all displayed string values/types
+function format_for_display(data, precision) {
+  // Parse here so we don't have to constantly worry about not passing floats
+  data = parseFloat(data);
+
+  // Credit https://stackoverflow.com/a/2901298
+  function format_commas(x) {
+    let parts = x.toString().split('.');
+    parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    return parts.join('.');
+  }
+
+  // Is money
+  if (precision === 2) {
+    let is_negative = false;
+    // Check (and remember) if negative
+    if (data < 0.0) {
+      is_negative = true;
+      // Removes sign
+      data = Math.abs(data);
+    }
+
+    let dollar_symbol = '$';
+
+    if (is_negative) {
+      dollar_symbol = `-${dollar_symbol}`;
+    }
+
+    data = format_commas(data.toFixed(precision));
+
+    return `${dollar_symbol}${data}`;
+    // Only the navbar tags use zero precision
+  } else if (precision === 0) {
+    // Round to whole number
+    return format_commas(Math.round(data));
+    // Only the mined amount uses 8 precision, so we can just catch as default
+  } else {
+    return format_commas(data.toFixed(precision));
+  }
+}
+
+function hps_multiplier(hps) {
+  /*
+    Multiply hashrate to get the hashrate as base hashrate, instead of selected hash per second.
+
+    Values from https://en.wikipedia.org/wiki/Template:Bitrates
+  */
+
+  switch (hps) {
+    case 'h':
+      return 1.0;
+    case 'kh':
+      return 1000.0;
+    case 'mh':
+      return 1000000.0;
+    case 'gh':
+      return 1000000000.0;
+    case 'th':
+      return 1000000000000.0;
+    default:
+      return 1.0;
+  }
 }
 
 // Run from body onload(), then on a timer every 100 seconds
 function fill_network_badges() {
   // Using promise.all allows for loading all at the same time, as to appear less laggy
   Promise.all([query('explorer', 'getdifficulty'), query('explorer', 'getblockcount'), query('explorer', 'getnetworkhashps')]).then(values => {
-    document.getElementById('pow_difficulty').textContent = format_commas(Math.round(values[0]));
-    document.getElementById('block_count').textContent = format_commas(values[1]);
-    // 1000000 is for hash to Mhash, as getnetworkhashps returns in h/s
-    document.getElementById('network_hashrate').textContent = format_commas(Math.round(values[2] / 1000000));
+    // getnetworkhashps returns in H/s, so we convert UP to GH/s by dividing
+    values[2] /= hps_multiplier('gh');
+
+    // All three values are displayed rounded to full numbers
+    document.getElementById('pow_difficulty').textContent = format_for_display(values[0], 0);
+    document.getElementById('block_count').textContent = format_for_display(values[1], 0);
+    document.getElementById('network_hashrate').textContent = format_for_display(values[2], 0);
   }).catch(function(error) {
     // Throw an alert if query fails
-    console.log(error);
-    alert('API query failed!');
+    console.log(Error(error));
+    alert(`API query failed!\n${error}`);
   });
 }
 
@@ -127,35 +193,10 @@ function main() {
     power_consumption = parseFloat(power_consumption);
     power_cost = parseFloat(power_cost);
 
-    function get_hps_multiplier() {
-      /*
-        Multiply hashrate based on chosen value in dropdown..
-        to get the hashrate as base hashrate, instead of selected hash per second.
+    // Convert DOWN to the base H/s by multiplying
+    hashrate *= hps_multiplier(document.getElementById('hash_per_sec').value);
 
-        Values from https://en.wikipedia.org/wiki/Template:Bitrates
-      */
-
-      // Using func to scope the var, to keep variables to a minimum
-      let hash_per_sec = document.getElementById('hash_per_sec').value;
-      switch (hash_per_sec) {
-        case 'h':
-          return 1.0;
-        case 'kh':
-          return 1000.0;
-        case 'mh':
-          return 1000000.0;
-        case 'gh':
-          return 1000000000.0;
-        case 'th':
-          return 1000000000000.0;
-        default:
-          return 1.0;
-      }
-    }
-    hashrate *= get_hps_multiplier();
-
-    // NOTE: Must be passed a numeric type or it will break!
-    // Always pass parseFloat() so toFixed doesn't break, even if 0 precision.
+    // NOTE: Always pass parseFloat() so toFixed doesn't break, even if 0 precision.
     function fill_grid_elements(target_element, value, precision) {
       /*
         Id's of various html tags are "X_Y"
@@ -167,13 +208,13 @@ function main() {
       */
 
       let display_value = value;
-      document.getElementById(target_element + '_day').textContent = format_commas(display_value.toFixed(precision));
+      document.getElementById(target_element + '_day').textContent = format_for_display(display_value, precision);
       display_value = value * 7.0;
-      document.getElementById(target_element + '_week').textContent = format_commas(display_value.toFixed(precision));
+      document.getElementById(target_element + '_week').textContent = format_for_display(display_value, precision);
       display_value = (value * 7.0) * 3.0;
-      document.getElementById(target_element + '_month').textContent = format_commas(display_value.toFixed(precision));
+      document.getElementById(target_element + '_month').textContent = format_for_display(display_value, precision);
       display_value = ((value * 7.0) * 3.0) * 12.0;
-      document.getElementById(target_element + '_year').textContent = format_commas(display_value.toFixed(precision));
+      document.getElementById(target_element + '_year').textContent = format_for_display(display_value, precision);
     }
 
     // Credit to @whphhg as this is just a slightly edited version of his Node.js code
@@ -429,13 +470,13 @@ function main() {
     }).catch(function(error) {
       // Throw an alert if query fails
       console.log(error);
-      alert('API query failed!');
+      alert(`API query failed!\n${error}`);
 
       // Re-enable button
       disable_btn(calculate_btn, false);
     });
   } else {
-    console.log('[Error] Incorrect value(s) in input boxes.');
+    console.log(Error('Incorrect value(s) in input boxes.'));
     // Re-enable button
     disable_btn(calculate_btn, false);
   }
