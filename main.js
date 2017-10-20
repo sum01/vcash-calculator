@@ -4,58 +4,59 @@
 */
 
 function query(api_name, target_api) {
+  let target_url = '';
+
+  // Set URL for Bittrex https://www.bittrex.com/Home/Api
+  if (api_name === 'bittrex') {
+    // Using Bittrex API v1.1 (v1.0 is depreciated), and only making public calls.
+    target_url = `https://bittrex.com/api/v1.1/public/${target_api}`;
+
+    // Set URL for explorer https://explorer.vcash.info/info
+  } else if (api_name === 'explorer') {
+    target_url = 'https://explorer.vcash.info/';
+    // The explorer uses different strings in the url for different calls
+    // Only checking for calls that don't require an '?index=XXXX'
+    if (target_api === 'getmoneysupply' || target_api === 'getdistribution') {
+      target_url += 'ext/';
+    } else {
+      target_url += 'api/';
+    }
+    target_url += target_api;
+  } else {
+    console.log(Error('Incorrect api name.'));
+    return;
+  }
+
+  // JSON.parse() wasn't working, so a number parser is fine for our purposes
+  function parser(data) {
+    let output = 0.0;
+    // Split by the commas
+    let array = data.split(',');
+    // Regex to match either a full number, or a number with a decimal
+    let api_regex = new RegExp('([0-9]+([\.]?[0-9]+)?)\1?', 'g');
+
+    // Test if the target api matches the bittrex call
+    if (api_name === 'bittrex') {
+      // High is on 3, Low is on 4
+      let high = parseFloat(array[3].match(api_regex));
+      let low = parseFloat(array[4].match(api_regex));
+      // Returns the average of the two
+      output = (high + low) / 2.0;
+    } else if (api_name === 'explorer') {
+      // All used explorer calls are on index 0
+      output = array[0].match(api_regex);
+    } else {
+      console.log(Error('Parser failure! Incorrect api call.'));
+      return;
+    }
+
+    console.log(`[info] Parser output for ${target_url} = ${output}`);
+    // Parsed output
+    return output;
+  }
+
   // Promise the data
   return new Promise(function(resolve, reject) {
-    let target_url = '';
-
-    // Set URL for Bittrex https://www.bittrex.com/Home/Api
-    if (api_name === 'bittrex') {
-      // Using Bittrex API v1.1 (v1.0 is depreciated), and only making public calls.
-      target_url = `https://bittrex.com/api/v1.1/public/${target_api}`;
-
-      // Set URL for explorer https://explorer.vcash.info/info
-    } else if (api_name === 'explorer') {
-      target_url = 'https://explorer.vcash.info/';
-      // The explorer uses different strings in the url for different calls
-      // Only checking for calls that don't require an '?index=XXXX'
-      if (target_api === 'getmoneysupply' || target_api === 'getdistribution') {
-        target_url += 'ext/';
-      } else {
-        target_url += 'api/';
-      }
-      target_url += target_api;
-    } else {
-      reject(Error('Incorrect api name.'));
-    }
-
-    // JSON.parse() wasn't working, so a number parser is fine for our purposes
-    function parser(data) {
-      let output = 0.0;
-      // Split by the commas
-      let array = data.split(',');
-      // Regex to match either a full number, or a number with a decimal
-      let api_regex = new RegExp('([0-9]+([\.]?[0-9]+)?)\1?', 'g');
-
-      // Test if the target api matches the bittrex call
-      if (api_name === 'bittrex') {
-        // High is on 3, Low is on 4
-        let high = parseFloat(array[3].match(api_regex));
-        let low = parseFloat(array[4].match(api_regex));
-        // Returns the average of the two
-        output = (high + low) / 2.0;
-      } else if (api_name === 'explorer') {
-        // All used explorer calls are on index 0
-        output = array[0].match(api_regex);
-      } else {
-        console.log(Error('Parser failure! Incorrect api call.'));
-        return;
-      }
-
-      console.log(`[info] Parser output for ${target_url} = ${output}`);
-      // Parsed output
-      return output;
-    }
-
     // Only way to pull from API's seems to be with a cors proxy https://github.com/Rob--W/cors-anywhere
     fetch(`https://cors-anywhere.herokuapp.com/${target_url}`, {
       method: 'get',
