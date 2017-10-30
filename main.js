@@ -23,7 +23,7 @@ function query(api_name, target_api) {
     }
     target_url += target_api;
   } else {
-    console.log(Error('Incorrect api name.'));
+    console.error('Incorrect api name!');
     return;
   }
 
@@ -46,11 +46,11 @@ function query(api_name, target_api) {
       // All used explorer calls are on index 0
       output = array[0].match(api_regex);
     } else {
-      console.log(Error('Parser failure! Incorrect api call.'));
+      console.error('Parser failure! Incorrect api call.');
       return;
     }
 
-    console.log(`[info] Parser output for ${target_url} = ${output}`);
+    console.log(`${target_url} = ${output}`);
     // Parsed output
     return output;
   }
@@ -155,8 +155,8 @@ function fill_network_badges() {
     document.getElementById('network_hashrate').textContent = format_for_display(values[2], 0);
   }).catch(function(error) {
     // Throw an alert if query fails
-    console.log(Error(error));
-    alert(`API query failed!\n${error}`);
+    console.error(error);
+    alert(`API query failed!\n\n${error}`);
   });
 }
 
@@ -255,7 +255,7 @@ function main() {
         }
 
         subsidy /= 1000000;
-        console.log(`[info] Using total PoW+PoS reward = ${subsidy}`);
+        console.log(`Using total PoW+PoS reward = ${subsidy}`);
         return subsidy;
       }
 
@@ -425,12 +425,12 @@ function main() {
         const percents_len = percents.length - 1;
 
         if (block >= percents[percents_len].block) {
-          console.log(`[info] Using incentive percent = ${percents[percents_len].percent}`);
+          console.log(`Using incentive percent = ${percents[percents_len].percent}`);
           return percents[percents_len].percent;
         } else {
           for (let i in percents) {
             if (block < percents[i].block) {
-              console.log(`[info] Using incentive percent = ${(percents[i].percent - 1)}`);
+              console.log(`Using incentive percent = ${(percents[i].percent - 1)}`);
               return percents[i].percent - 1;
             }
           }
@@ -440,7 +440,7 @@ function main() {
       let reward_total = total_reward();
       let incentive_reward = (reward_total / 100) * incentive_percent();
       // Returns the PoW-only reward
-      console.log(`[info] Using PoW reward = ${(reward_total - incentive_reward)}`);
+      console.log(`Using PoW reward = ${(reward_total - incentive_reward)}`);
       return parseFloat(reward_total - incentive_reward);
     }
 
@@ -470,14 +470,14 @@ function main() {
       disable_btn(calculate_btn, false);
     }).catch(function(error) {
       // Throw an alert if query fails
-      console.log(error);
-      alert(`API query failed!\n${error}`);
+      console.error(error);
+      alert(`API query failed!\n\n${error}`);
 
       // Re-enable button
       disable_btn(calculate_btn, false);
     });
   } else {
-    console.log(Error('Incorrect value(s) in input boxes.'));
+    console.warn('Incorrect value(s) in input boxes!');
     // Re-enable button
     disable_btn(calculate_btn, false);
   }
