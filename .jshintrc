@@ -1,4 +1,4 @@
 {
-  "esversion": 6
-  "jscs": disable function-in-block
+	"esversion": 6,
+	"jscs": disable function-in-block
 }
