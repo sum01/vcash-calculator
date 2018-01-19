@@ -58,7 +58,7 @@
 						<!-- First card for entering hashrates -->
 						<div class="card bg-light mb-0">
 							<!-- Start of form for hashrates -->
-							<form>
+							<form onsubmit="main();return false;">
 								<!-- Start of segmented card list -->
 								<ul class="list-group list-group-flush">
 									<li class="list-group-item">
@@ -93,7 +93,7 @@
 										</div>
 									</li>
 									<li class="list-group-item">
-										<button class="btn btn-dark btn-lg btn-block" type="button" name="submit" onclick="main()" id="calculate_btn">Calculate</button>
+										<button class="btn btn-dark btn-lg btn-block" type="submit" name="submit" id="calculate_btn">Calculate</button>
 									</li>
 								</ul>
 							</form>
