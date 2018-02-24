@@ -64,7 +64,7 @@
 									<li class="list-group-item">
 										<label for="hashrate">Hashrate</label>
 										<div class="input-group input-group-lg">
-											<input class="form-control" type="number" name="hashrate" id="hashrate" placeholder="Enter hashrate" aria-label="Number input with dropdown" required>
+											<input class="form-control" type="number" min="0" step="0.01" name="hashrate" id="hashrate" placeholder="50" aria-label="Number input with dropdown" autofocus required>
 											<select class="" name="hashes_per_sec" id="hash_per_sec" aria-label="Dropdown for hashes per second" required>
 												<!-- https://en.wikipedia.org/wiki/Template:Bitrates -->
 												<optgroup label="Hashes per second">
@@ -80,7 +80,7 @@
 									<li class="list-group-item">
 										<label for="hashrate">Power consumption <small>in watts</small></label>
 										<div class="input-group input-group-lg">
-											<input class="form-control" type="number" value="100" name="power_consumption" id="power_consumption" placeholder="Enter watts" aria-label="Number input with dropdown" required>
+											<input class="form-control" type="number" min="0" step="0.01" value="150" name="power_consumption" id="power_consumption" placeholder="150" aria-label="Number input" required>
 										</div>
 									</li>
 									<li class="list-group-item">
@@ -89,7 +89,7 @@
 											<div class="input-group-prepend">
 												<span class="input-group-text">$</span>
 											</div>
-											<input class="form-control" type="number" value="0.10" name="power_cost" id="power_cost" placeholder="Enter cost" aria-label="Number input with dropdown" required>
+											<input class="form-control" type="number" min="0" step="0.01" value="0.1" name="power_cost" id="power_cost" placeholder="0.1" aria-label="Number input" required>
 										</div>
 									</li>
 									<li class="list-group-item">
