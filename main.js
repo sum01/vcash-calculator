@@ -15,8 +15,9 @@ function query(api_name, target_api) {
 	} else if (api_name === "explorer") {
 		target_url = "https://explorer.vcash.info/";
 		// The explorer uses different strings in the url for different calls
-		// Only checking for calls that don't require an '?index=XXXX'
-		if (target_api === "getmoneysupply" || target_api === "getdistribution") {
+		if (
+			target_api.match("get(moneysupply|distribution|address|balance|lasttxs)")
+		) {
 			target_url += "ext/";
 		} else {
 			target_url += "api/";
@@ -33,7 +34,7 @@ function query(api_name, target_api) {
 		// Split by the commas
 		let array = data.split(",");
 		// Regex to match either a full number, or a number with a decimal
-		let api_regex = new RegExp("([0-9]+([.]?[0-9]+)?)\1?", "g");
+		let api_regex = new RegExp("([0-9]+(.[0-9]+)?)", "g");
 
 		// Test if the target api matches the bittrex call
 		if (api_name === "bittrex") {
