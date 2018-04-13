@@ -13,14 +13,14 @@
 
 * [Prettier](https://github.com/prettier/prettier) is used to beautify the `.js`
   and `.md` files.
-* [Htmlbeautifier](https://github.com/threedaymonk/htmlbeautifier) is used to
+* html-beautifier, which comes with [js-beautify](https://github.com/beautify-web/js-beautify), is used to
   beautify `.html` files.
 * [Editorconfig](http://editorconfig.org/) should be used when submitting any
   changes.
 
 ### Git workflow
 
-1. Fork the repo
-2. Make your changes on a new branch
-3. Keep commits consise with `git add -p`
-4. Push to your rep, and submit a pull request onto `master`
+1.  Fork the repo
+2.  Make your changes on a new branch
+3.  Keep commits consise with `git add -p`
+4.  Push to your rep, and submit a pull request onto `master`

@@ -1,71 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<!-- Required meta tags -->
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-		<title>Vcash Mining Calculator</title>
-		<link rel="shortcut icon" href="media/vcash_logo.ico">
-		<!-- Bootstrap CSS -->
-		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-		<!-- Tiny bit of custom CSS -->
-		<link rel="stylesheet" href="main.css">
-	</head>
-	<body onload="fill_network_badges()">
-		<!-- Warning if they don't enable Javascript -->
-		<noscript>
+
+<head>
+	<!-- Required meta tags -->
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<title>Vcash Mining Calculator</title>
+	<link rel="shortcut icon" href="media/vcash_logo.ico">
+	<!-- Bootstrap CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+	<!-- Tiny bit of custom CSS -->
+	<link rel="stylesheet" href="main.css">
+</head>
+
+<body onload="fill_network_badges()">
+	<!-- Warning if they don't enable Javascript -->
+	<noscript>
 			<h1 class="noscript_h1">This page requires Javascript to query price info!</h1>
 		</noscript>
-		<!-- Fluid wrapper for everything -->
-		<div class="container-fluid">
-			<!-- Navbar -->
-			<nav class="navbar navbar-expand-md navbar-dark bg-dark">
-				<a class="navbar-brand" href="https://vcash.info/">
+	<!-- Fluid wrapper for everything -->
+	<div class="container-fluid">
+		<!-- Navbar -->
+		<nav class="navbar navbar-expand-md navbar-dark bg-dark">
+			<a class="navbar-brand" href="https://vcash.info/">
 					<img src="media/vcash_logo.png" width="30" height="30" class="d-inline-block align-top" alt="Vcash"> mining calculator
 				</a>
-				<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
 					<span class="navbar-toggler-icon"></span>
 				</button>
-				<div class="collapse navbar-collapse" id="navbarNav">
-					<ul class="navbar-nav">
-						<li class="nav-item">
-							<!-- Display total network hashrate (in GH/s) -->
-							<a class="nav-link" href="https://explorer.vcash.info" aria-label="Explorer">
+			<div class="collapse navbar-collapse" id="navbarNav">
+				<ul class="navbar-nav">
+					<li class="nav-item">
+						<!-- Display total network hashrate (in GH/s) -->
+						<a class="nav-link" href="https://explorer.vcash.info" aria-label="Explorer">
 								<span class="badge badge-light">Total hashrate: <span id="network_hashrate">...</span> GH/s</span>
 							</a>
-						</li>
-						<li class="nav-item">
-							<!-- Display current block count https://explorer.vcash.info/api/getblockcount -->
-							<a class="nav-link" href="https://explorer.vcash.info" aria-label="Explorer">
+					</li>
+					<li class="nav-item">
+						<!-- Display current block count https://explorer.vcash.info/api/getblockcount -->
+						<a class="nav-link" href="https://explorer.vcash.info" aria-label="Explorer">
 								<span class="badge badge-light">Block count: <span id="block_count">...</span></span>
 							</a>
-						</li>
-						<li class="nav-item">
-							<!-- Get difficulty, only display for PoW since it's a mining calc https://explorer.vcash.info/api/getdifficulty -->
-							<a class="nav-link" href="https://explorer.vcash.info" aria-label="Explorer">
+					</li>
+					<li class="nav-item">
+						<!-- Get difficulty, only display for PoW since it's a mining calc https://explorer.vcash.info/api/getdifficulty -->
+						<a class="nav-link" href="https://explorer.vcash.info" aria-label="Explorer">
 								<span class="badge badge-light">PoW difficulty: <span id="pow_difficulty">...</span></span>
 							</a>
-						</li>
-					</ul>
-				</div>
-				<!-- End of navbar -->
-			</nav>
-			<!-- Main grid to flow cards below instead of crushing them -->
-			<div class="row no-gutters">
-				<div class="col-sm-12">
-					<!-- Main card group -->
-					<div class="card-group">
-						<!-- First card for entering hashrates -->
-						<div class="card bg-light mb-0">
-							<!-- Start of form for hashrates -->
-							<form onsubmit="main();return false;">
-								<!-- Start of segmented card list -->
-								<ul class="list-group list-group-flush">
-									<li class="list-group-item">
-										<label for="hashrate">Hashrate</label>
-										<div class="input-group input-group-lg">
-											<input class="form-control" type="number" min="0" step="0.01" name="hashrate" id="hashrate" placeholder="50" aria-label="Number input with dropdown" autofocus required>
-											<select class="" name="hashes_per_sec" id="hash_per_sec" aria-label="Dropdown for hashes per second" required>
+					</li>
+				</ul>
+			</div>
+			<!-- End of navbar -->
+		</nav>
+		<!-- Main grid to flow cards below instead of crushing them -->
+		<div class="row no-gutters">
+			<div class="col-sm-12">
+				<!-- Main card group -->
+				<div class="card-group">
+					<!-- First card for entering hashrates -->
+					<div class="card bg-light mb-0">
+						<!-- Start of form for hashrates -->
+						<form onsubmit="main();return false;">
+							<!-- Start of segmented card list -->
+							<ul class="list-group list-group-flush">
+								<li class="list-group-item">
+									<label for="hashrate">Hashrate</label>
+									<div class="input-group input-group-lg">
+										<input class="form-control" type="number" min="0" step="0.01" name="hashrate" id="hashrate" placeholder="50" aria-label="Number input with dropdown" autofocus required>
+										<select class="" name="hashes_per_sec" id="hash_per_sec" aria-label="Dropdown for hashes per second" required>
 												<!-- https://en.wikipedia.org/wiki/Template:Bitrates -->
 												<optgroup label="Hashes per second">
 													<option value="h">H/s</option>
@@ -75,116 +77,117 @@
 													<option value="th">TH/s</option>
 												</optgroup>
 											</select>
+									</div>
+								</li>
+								<li class="list-group-item">
+									<label for="hashrate">Power consumption <small>in watts</small></label>
+									<div class="input-group input-group-lg">
+										<input class="form-control" type="number" min="0" step="0.01" value="150" name="power_consumption" id="power_consumption" placeholder="150" aria-label="Number input" required>
+									</div>
+								</li>
+								<li class="list-group-item">
+									<label for="cost">Cost per kWh <small>in USD</small></label>
+									<div class="input-group input-group-lg">
+										<div class="input-group-prepend">
+											<span class="input-group-text">$</span>
 										</div>
-									</li>
-									<li class="list-group-item">
-										<label for="hashrate">Power consumption <small>in watts</small></label>
-										<div class="input-group input-group-lg">
-											<input class="form-control" type="number" min="0" step="0.01" value="150" name="power_consumption" id="power_consumption" placeholder="150" aria-label="Number input" required>
-										</div>
-									</li>
-									<li class="list-group-item">
-										<label for="cost">Cost per kWh <small>in USD</small></label>
-										<div class="input-group input-group-lg">
-											<div class="input-group-prepend">
-												<span class="input-group-text">$</span>
-											</div>
-											<input class="form-control" type="number" min="0" step="0.01" value="0.1" name="power_cost" id="power_cost" placeholder="0.1" aria-label="Number input" required>
-										</div>
-									</li>
-									<li class="list-group-item">
-										<button class="btn btn-dark btn-lg btn-block" type="submit" name="submit" id="calculate_btn">Calculate</button>
-									</li>
-								</ul>
-							</form>
-							<!-- End of first card (where hashes/etc are entered) -->
-						</div>
-						<!-- End of main card-group -->
+										<input class="form-control" type="number" min="0" step="0.01" value="0.1" name="power_cost" id="power_cost" placeholder="0.1" aria-label="Number input" required>
+									</div>
+								</li>
+								<li class="list-group-item">
+									<button class="btn btn-dark btn-lg btn-block" type="submit" name="submit" id="calculate_btn">Calculate</button>
+								</li>
+							</ul>
+						</form>
+						<!-- End of first card (where hashes/etc are entered) -->
 					</div>
-					<!-- End of first col -->
+					<!-- End of main card-group -->
 				</div>
-				<div class="col-sm-12">
-					<!-- Second card for displaying price info -->
-					<div class="card bg-light mb-0">
-						<div class="table-responsive">
-							<table class="table table-bordered table-hover">
-								<thead>
-									<tr>
-										<th>
-											<!-- Empty for alignment -->
-										</th>
-										<th>Day</th>
-										<th>Week</th>
-										<th>Month</th>
-										<th>Year</th>
-									</tr>
-								</thead>
-								<tbody>
-									<tr>
-										<th>Adjusted Profit</th>
-										<td id="profit_day">
-											-
-										</td>
-										<td id="profit_week">
-											-
-										</td>
-										<td id="profit_month">
-											-
-										</td>
-										<td id="profit_year">
-											-
-										</td>
-									</tr>
-									<tr>
-										<th>Estimated Mined</th>
-										<td id="mined_day">
-											-
-										</td>
-										<td id="mined_week">
-											-
-										</td>
-										<td id="mined_month">
-											-
-										</td>
-										<td id="mined_year">
-											-
-										</td>
-									</tr>
-									<tr id="power_cost_row">
-										<th>Power cost</th>
-										<td id="power_day">
-											-
-										</td>
-										<td id="power_week">
-											-
-										</td>
-										<td id="power_month">
-											-
-										</td>
-										<td id="power_year">
-											-
-										</td>
-									</tr>
-								</tbody>
-							</table>
-						</div>
-						<div class="card-footer text-muted">
-							<small>Using <a href="https://bittrex.com">Bittrex</a> for price info and <a href="https://explorer.vcash.info/">xCore's explorer</a> for network info. Source code <a href="https://github.com/sum01/vcash-calculator">here.</a> Tips appreciated 😊
-								XVC: VnTgoWXVM5XVnNT12xZ7ctjpNZ8HWTNiWq & BTC: 1HpD3xTxLrY5ewojYwPNksCWcqFHWYT1fm</small>
-						</div>
-						<!-- End of second card (for displaying prices) -->
-					</div>
-					<!-- End of second col -->
-				</div>
-				<!-- End of row -->
+				<!-- End of first col -->
 			</div>
-			<!-- End of main container-fluid wrapper -->
+			<div class="col-sm-12">
+				<!-- Second card for displaying price info -->
+				<div class="card bg-light mb-0">
+					<div class="table-responsive">
+						<table class="table table-bordered table-hover">
+							<thead>
+								<tr>
+									<th>
+										<!-- Empty for alignment -->
+									</th>
+									<th>Day</th>
+									<th>Week</th>
+									<th>Month</th>
+									<th>Year</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<th>Adjusted Profit</th>
+									<td id="profit_day">
+										-
+									</td>
+									<td id="profit_week">
+										-
+									</td>
+									<td id="profit_month">
+										-
+									</td>
+									<td id="profit_year">
+										-
+									</td>
+								</tr>
+								<tr>
+									<th>Estimated Mined</th>
+									<td id="mined_day">
+										-
+									</td>
+									<td id="mined_week">
+										-
+									</td>
+									<td id="mined_month">
+										-
+									</td>
+									<td id="mined_year">
+										-
+									</td>
+								</tr>
+								<tr id="power_cost_row">
+									<th>Power cost</th>
+									<td id="power_day">
+										-
+									</td>
+									<td id="power_week">
+										-
+									</td>
+									<td id="power_month">
+										-
+									</td>
+									<td id="power_year">
+										-
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<div class="card-footer text-muted">
+						<small>Using <a href="https://bittrex.com">Bittrex</a> for price info and <a href="https://explorer.vcash.info/">xCore's explorer</a> for network info. Source code <a href="https://github.com/sum01/vcash-calculator">here.</a> Tips appreciated 😊
+								XVC: VnTgoWXVM5XVnNT12xZ7ctjpNZ8HWTNiWq & BTC: 1HpD3xTxLrY5ewojYwPNksCWcqFHWYT1fm</small>
+					</div>
+					<!-- End of second card (for displaying prices) -->
+				</div>
+				<!-- End of second col -->
+			</div>
+			<!-- End of row -->
 		</div>
-		<!-- jQuery first, then Popper.js, then Bootstrap JS -->
-		<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
-		<!-- Our JS for making API calls, filling elements, etc. -->
-		<script src="main.js" charset="utf-8"></script>
-	</body>
+		<!-- End of main container-fluid wrapper -->
+	</div>
+	<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+	<!-- Our JS for making API calls, filling elements, etc. -->
+	<script src="main.js" charset="utf-8"></script>
+</body>
+
 </html>
