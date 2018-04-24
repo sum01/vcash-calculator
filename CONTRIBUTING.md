@@ -17,6 +17,7 @@
   beautify `.html` files.
 * [Editorconfig](http://editorconfig.org/) should be used when submitting any
   changes.
+* [Eslint](https://github.com/eslint/eslint) is used for linting. The projects `.eslintrc.json` should be detected while you edit.
 
 ### Git workflow
 
