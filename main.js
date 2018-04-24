@@ -419,7 +419,7 @@ function get_pow_reward(block) {
 			);
 			return percents[percents_len].percent;
 		} else {
-			for (let obj of percents) {
+			for (const obj of percents) {
 				if (block < obj.block) {
 					console.log(`Using incentive percent = ${obj.percent - 1}`);
 					return obj.percent - 1;
@@ -465,10 +465,19 @@ function main() {
 	}
 
 	// Disable/enable button while running
-	let calculate_button = document.getElementById("calculate_btn");
+	const calculate_button = {
+		dom_obj: document.getElementById("calculate_btn"),
+		enable: function() {
+			this.dom_obj.disabled = false;
+			this.dom_obj.textContent = "Calculate";
+		},
+		disable: function() {
+			this.dom_obj.disabled = true;
+			this.dom_obj.textContent = "Loading...";
+		}
+	};
 	// Disable the calc button while running calulations & queries
-	calculate_button.disabled = true;
-	calculate_button.textContent = "Loading...";
+	calculate_button.disable();
 
 	// Chain promises together because some of the math depends on eachother
 	Promise.all([
@@ -508,11 +517,10 @@ function main() {
 			// Throw an alert if query fails
 			console.error(error);
 			alert(`API query failed!\n\n${error}`);
+		})
+		.then(function() {
+			calculate_button.enable();
 		});
-
-	// Re-enable button
-	calculate_button.disabled = false;
-	calculate_button.textContent = "Calculate";
 }
 
 // Fills the badges with data retrieved from explorer API every 100 seconds (avg block time)
