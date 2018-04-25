@@ -178,34 +178,40 @@ function fill_network_badges() {
 // NOTE: Always pass parseFloat() so toFixed doesn't break, even if 0 precision.
 function fill_grid_elements(target_element, value, precision) {
 	/*
-				Id's of various html tags are "X_Y"
+		Id's of various html tags are "X_Y"
 
-				Where X is profit/mined/power
-				and Y is day/week/month/year
+		Where X is profit/mined/power
+		and Y is day/week/month/year
 
-				Ex: The id for power cost per month is "power_month"
-				*/
+		Ex: The id for power cost per month is "power_month"
+	*/
 
-	let display_value = value;
 	document.getElementById(
 		target_element + "_day"
-	).textContent = format_for_display(display_value, precision);
-	display_value = value * 7.0;
+	).textContent = format_for_display(value, precision);
+
+	// 7 days in a week...
+	value *= 7.0;
 
 	document.getElementById(
 		target_element + "_week"
-	).textContent = format_for_display(display_value, precision);
-	display_value = value * 7.0 * 3.0;
+	).textContent = format_for_display(value, precision);
+
+	// 3 weeks in a month...
+	value *= 3.0;
 
 	document.getElementById(
 		target_element + "_month"
-	).textContent = format_for_display(display_value, precision);
-	display_value = value * 7.0 * 3.0 * 12.0;
+	).textContent = format_for_display(value, precision);
+
+	// 12 months in year...
+	value *= 12.0;
 
 	document.getElementById(
 		target_element + "_year"
-	).textContent = format_for_display(display_value, precision);
+	).textContent = format_for_display(value, precision);
 }
+
 // Credit to @whphhg as this is just a slightly edited version of his Node.js code
 function get_pow_reward(block) {
 	function total_reward() {
