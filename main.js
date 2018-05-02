@@ -154,19 +154,27 @@ function fill_network_badges() {
 			// getnetworkhashps returns in H/s, so we convert UP to GH/s by dividing
 			values[2] /= hps_multiplier("gh");
 
-			// All three values are displayed rounded to full numbers
-			document.getElementById(
-				"pow_difficulty"
-			).textContent = format_for_display(values[0], 0);
-
-			document.getElementById("block_count").textContent = format_for_display(
-				values[1],
-				0
-			);
-
-			document.getElementById(
+			// This counter is to go through the values[] array
+			let counter = 0;
+			for (const tar_element of [
+				"pow_difficulty",
+				"block_count",
 				"network_hashrate"
-			).textContent = format_for_display(values[2], 0);
+			]) {
+				// Check we don't go out-of-bounds
+				if (counter > values.length) {
+					throw new Error(
+						"Out-of-bounds error in the fill_network_badges call!"
+					);
+				}
+				// All navbar values are displayed rounded to full numbers
+				document.getElementById(tar_element).textContent = format_for_display(
+					values[counter],
+					0
+				);
+
+				counter++;
+			}
 		})
 		.catch(function(error) {
 			// Throw an alert if query fails
@@ -175,7 +183,9 @@ function fill_network_badges() {
 		});
 }
 
-// NOTE: Always pass parseFloat() so toFixed doesn't break, even if 0 precision.
+// Each call of this function fills one row of the results table
+// so a total of 3 calls will fill our 3 rows in the HTML file
+// It takes the string ID of as a target, the value in a "day" timeframe, and the precision to round to
 function fill_grid_elements(target_element, value, precision) {
 	/*
 		Id's of various html tags are "X_Y"
@@ -184,32 +194,25 @@ function fill_grid_elements(target_element, value, precision) {
 		and Y is day/week/month/year
 
 		Ex: The id for power cost per month is "power_month"
+
+		The multipliers are accumulative since we're using the *= operator...
+		so getting the year is 12 since the previous was value in months...
+		etc etc etc
 	*/
 
-	document.getElementById(
-		target_element + "_day"
-	).textContent = format_for_display(value, precision);
-
-	// 7 days in a week...
-	value *= 7.0;
-
-	document.getElementById(
-		target_element + "_week"
-	).textContent = format_for_display(value, precision);
-
-	// 3 weeks in a month...
-	value *= 3.0;
-
-	document.getElementById(
-		target_element + "_month"
-	).textContent = format_for_display(value, precision);
-
-	// 12 months in year...
-	value *= 12.0;
-
-	document.getElementById(
-		target_element + "_year"
-	).textContent = format_for_display(value, precision);
+	for (const obj of [
+		{ timeframe: "day", multiplier: 1.0 },
+		{ timeframe: "week", multiplier: 3.0 },
+		{ timeframe: "month", multiplier: 7.0 },
+		{ timeframe: "year", multiplier: 12.0 }
+	]) {
+		// Since the value is originally in days, multiply to get target timeframe
+		value *= obj.multiplier;
+		// Fill the html's text with the formatted value
+		document.getElementById(
+			target_element + "_" + obj.timeframe
+		).textContent = format_for_display(value, precision);
+	}
 }
 
 // Credit to @whphhg as this is just a slightly edited version of his Node.js code
