@@ -1,0 +1,13 @@
+image: alpine:latest
+
+# TODO: Add a test stage here that runs eslint
+
+pages:
+  stage: deploy
+  script:
+    - echo 'Nothing to do...'
+  artifacts:
+    paths:
+      - public
+  only:
+    - master

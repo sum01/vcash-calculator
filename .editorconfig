@@ -15,3 +15,7 @@ trim_trailing_whitespace = true
 # Ignore .md files, because 2 spaces at end-of-line has meaning
 [*.md]
 trim_trailing_whitespace = false
+
+# Yaml requires space indentation
+[*.yml]
+indent_style = space
