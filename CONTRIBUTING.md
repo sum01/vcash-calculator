@@ -13,7 +13,7 @@
 
 * [Prettier](https://github.com/prettier/prettier) is used to beautify the `.js`
   and `.md` files.
-* html-beautifier, which comes with [js-beautify](https://github.com/beautify-web/js-beautify), is used to
+* [htmlbeautifier](https://github.com/threedaymonk/htmlbeautifier), is used to
   beautify `.html` files.
 * [Editorconfig](http://editorconfig.org/) should be used when submitting any
   changes.
