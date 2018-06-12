@@ -1,6 +1,13 @@
-image: alpine:latest
+image: registry.gitlab.com/sum01/vcash-calculator:latest
 
-# TODO: Add a test stage here that runs eslint
+stages:
+  - test
+  - deploy
+
+test:eslint:
+  stage: test
+  script:
+    - eslint -c "$(pwd)" public/main.js
 
 pages:
   stage: deploy
