@@ -7,7 +7,7 @@ stages:
 test:eslint:
   stage: test
   script:
-    - eslint -c "$(pwd)" public/main.js
+    - eslint -c "$(pwd)/.eslintrc.json" public/main.js
 
 pages:
   stage: deploy
