@@ -1,6 +1,6 @@
 # Vcash Mining Calculator
 
-[![Codacy Badge](https://api.codacy.com/project/badge/Grade/85871003b9fe40b084a9adb84404b23d)](https://www.codacy.com/app/sum01/vcash-calculator?utm_source=github.com&utm_medium=referral&utm_content=sum01/vcash-calculator&utm_campaign=Badge_Grade)
+[![pipeline status](https://gitlab.com/sum01/vcash-calculator/badges/master/pipeline.svg)](https://gitlab.com/sum01/vcash-calculator/commits/master)
 
 A simple calculator that takes some input and calculates your estimated profit, average mined, and power cost for each day/week/month/year.
 
