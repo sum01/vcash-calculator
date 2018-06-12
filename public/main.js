@@ -536,3 +536,10 @@ function main() {
 setInterval(function() {
 	fill_network_badges();
 }, 100000);
+
+// Opens the Bootstrap modal to show a warning
+// We tell Eslint to ignore since Jquery is pulled by the html file
+// eslint-disable-next-line
+$("#bittrex_removal_modal").modal({
+	show: true
+});
